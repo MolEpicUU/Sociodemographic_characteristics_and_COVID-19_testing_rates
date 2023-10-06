@@ -1,6 +1,7 @@
 //Calculates information about the number of individuals within specific age ranges for each postal code
 //(to be merged with main file)
 cd "\\argos.rudbeck.uu.se\MyGroups$\Gold\CRUSH_Covid\SCB\leverans20210621"
+import excel "UU_Postnummer202103.xlsx",firstrow clear
 import excel "UU_Postnummer202103.xlsx",firstrow clear cellrange(A8:BO10399)
 drop in 1
 destring *,replace
@@ -8,7 +9,7 @@ destring *,replace
 //the combinations of gender and the five age categories
 egen pop_5_14_male=rowtotal(C-D)
 egen pop_15_29_male=rowtotal(E-G)
-egen pop_30_49_male=rowtotal(H-M)
+egen pop_30_49_male=rowtotal(H-K) //prev: M
 egen pop_50_69_male=rowtotal(L-O)
 egen pop_70_105_male=rowtotal(P-V)
 
@@ -28,8 +29,11 @@ egen pop_15_105=rowtotal(E-V AA-AR)
 *****************************
 
 rename A postnummer
-keep postnummer pop*
+keep postnummer pop* BO AS //BO = total pop (all). AS=total pop (women)
+rename BO pop
+replace AS=AS/pop
+rename AS andel_kvinnor //prop. women
 tostring postnummer,replace
 replace postnummer="74020" if postnummer=="75578" | postnummer=="75577" | postnummer=="75576"
-collapse (sum) pop*,by(postnummer)
+collapse (sum) pop* andel_kv,by(postnummer)
 save "C:\Users\ulfha881\PROJECTS\Tove\CRUSH\MyData\AgegroupPopulations.dta",replace

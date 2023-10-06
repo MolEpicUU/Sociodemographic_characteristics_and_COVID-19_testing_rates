@@ -16,6 +16,7 @@ save "C:\Users\ulfha881\PROJECTS\Tove\CRUSH\MyData\VaccineData.dta",replace empt
 		cap drop Typningsresultat
 		cap drop Analys*
 		append using "C:\Users\ulfha881\PROJECTS\Tove\CRUSH\MyData\VaccineData.dta"
+		assert Utdelningsdatum>date("01jan2021","DMY")
 		drop if Utdelningsdatum>date("09feb2022","DMY")
 		save "C:\Users\ulfha881\PROJECTS\Tove\CRUSH\MyData\VaccineData.dta",replace
 }
@@ -93,7 +94,7 @@ putdocx text ("`=r(unique)' individuals which are two years older or more during
 replace Ålder=. if Diff<-2
 drop Diff Test
 if "${vaccine}"=="20+" replace Ålder=. if Ålder<20
-if "${vaccine}"=="15+" replace Ålder=. if Ålder<15
+if "${vaccine}"=="15+" replace Ålder=. if Ålder<15 //15 used in the paper 
 gen agegroup=1 if inrange(Ålder,5,14)
 replace agegroup=2 if inrange(Ålder,15,29)
 replace agegroup=3 if inrange(Ålder,30,49)
@@ -124,7 +125,7 @@ forv i=1/3{
 	putdocx text ("`=r(unique)' individuals with at least `i' dose"),linebreak(1)
 
 	***This part makes sure that only individuals with known age and gender will be counted, and that they will be assigned to their
-	***earliest known postal code. 
+	***earliest known postal code (as defined in "VaccineData_postnummer). 
 	keep OrdinationskontaktÅlder Utdelningsdatum Dosordning ZIPcode Kön Personid
 	destring Dosordning Personid,replace force
 	drop if Personid==. | Utdelningsdatum==.
@@ -134,8 +135,7 @@ forv i=1/3{
 	duplicates drop
 	isid Personid Utdelningsdatum
 	bysort Personid (Utdelningsdatum): gen n=_n
-	keep if n==1 //makes sure that only the first instance of the individual is kept (VaccineData_postnummer includes several, but they are all missing
-	//on utdelningsdatum, thereby sorted as "infinite")
+	keep if n==1 //makes sure that only the first instance of the individual is kept
 	unique Personid
 	putdocx text ("...of which `=r(unique)' individuals remains after dropping individuals with missing age, gender or postal code"),linebreak(1)
 	*************************************** 
